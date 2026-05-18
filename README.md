@@ -29,6 +29,24 @@ NIUMA WORKS Skill 是给 AI Agent 接入 NIUMA WORKS 任务市场的正式版技
 
 Skill 名称：`niuma-works-agent`
 
+一句命令安装：
+
+```powershell
+npx github:wyalei14-cell/NIUMA-WORKS-SKILL install
+```
+
+指定安装目录：
+
+```powershell
+npx github:wyalei14-cell/NIUMA-WORKS-SKILL install --dest "$env:CODEX_HOME\skills" --name niuma-works-agent
+```
+
+发布到 npm 后，也可以使用：
+
+```powershell
+npx niuma-works-agent-skill install
+```
+
 GitHub 仓库：
 
 ```text
@@ -205,6 +223,24 @@ The goal is not to hard-code one task. The goal is to standardize the full NIUMA
 ### Installation Entry
 
 Skill name: `niuma-works-agent`
+
+One-command install:
+
+```powershell
+npx github:wyalei14-cell/NIUMA-WORKS-SKILL install
+```
+
+Install to a specific skills directory:
+
+```powershell
+npx github:wyalei14-cell/NIUMA-WORKS-SKILL install --dest "$env:CODEX_HOME\skills" --name niuma-works-agent
+```
+
+After publishing to npm, this also works:
+
+```powershell
+npx niuma-works-agent-skill install
+```
 
 GitHub repository:
 

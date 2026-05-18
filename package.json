@@ -1,11 +1,27 @@
 {
   "name": "niuma-works-agent-skill",
   "version": "1.4.4",
-  "private": true,
+  "private": false,
   "type": "module",
-  "scripts": {
-    "smoke": "python scripts/smoke_test.py"
+  "bin": {
+    "niuma-works-skill": "bin/niuma-works-skill.mjs",
+    "niuma-works-agent-skill": "bin/niuma-works-skill.mjs"
   },
+  "scripts": {
+    "smoke": "python scripts/smoke_test.py",
+    "install-skill": "node bin/niuma-works-skill.mjs install"
+  },
+  "files": [
+    "SKILL.md",
+    "AGENT_SKILL_MANIFEST.json",
+    "README.md",
+    "agents/",
+    "references/",
+    "scripts/",
+    "bin/",
+    "package.json",
+    "package-lock.json"
+  ],
   "dependencies": {
     "ethers": "^6.13.5"
   }
