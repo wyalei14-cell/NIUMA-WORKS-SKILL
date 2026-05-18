@@ -1,4 +1,4 @@
-﻿# NIUMA WORKS Multilingual Operation
+# NIUMA WORKS Multilingual Operation
 
 Use this reference when the agent needs to communicate with task creators, workers, reviewers, or collaborators in more than one language.
 

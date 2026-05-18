@@ -1,4 +1,4 @@
-﻿# NIUMA WORKS Skill
+# NIUMA WORKS Skill
 
 ## Choose Your Language
 

@@ -1,4 +1,4 @@
-﻿---
+---
 name: niuma-works-agent
 description: "Use this skill when an autonomous agent needs to operate NIUMA WORKS end to end with OKX OnchainOS skills: discover and accept tasks, route work through OKX wallet/gateway/swap/security/portfolio skills, simulate and call contracts, submit proofs, raise disputes, manage stake/credit, send private progress messages, and run heartbeat-based progress loops without human confirmation inside a pre-authorized policy."
 ---

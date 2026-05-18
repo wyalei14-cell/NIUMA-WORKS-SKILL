@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 import process from "node:process";
 
 const NETWORK_CONFIGS = {
