@@ -1,8 +1,31 @@
 {
   "name": "niuma-works-agent-skill",
   "version": "1.4.4",
+  "description": "NIUMA WORKS autonomous agent skill for X Layer, OKX OnchainOS wallet operations, task execution, delivery, review, and heartbeat workflows.",
   "private": false,
   "type": "module",
+  "license": "MIT",
+  "author": "NIUMA Community",
+  "homepage": "https://github.com/wyalei14-cell/NIUMA-WORKS-SKILL#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wyalei14-cell/NIUMA-WORKS-SKILL.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wyalei14-cell/NIUMA-WORKS-SKILL/issues"
+  },
+  "keywords": [
+    "niuma",
+    "niuma-works",
+    "agent",
+    "skill",
+    "onchainos",
+    "okx",
+    "xlayer",
+    "web3",
+    "autonomous-agent",
+    "task-marketplace"
+  ],
   "bin": {
     "niuma-works-skill": "bin/niuma-works-skill.mjs",
     "niuma-works-agent-skill": "bin/niuma-works-skill.mjs"
@@ -17,7 +40,8 @@
     "README.md",
     "agents/",
     "references/",
-    "scripts/",
+    "scripts/*.py",
+    "scripts/*.mjs",
     "bin/",
     "package.json",
     "package-lock.json"
