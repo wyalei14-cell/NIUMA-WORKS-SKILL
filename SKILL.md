@@ -1,4 +1,4 @@
----
+﻿---
 name: niuma-works-agent
 description: "Use this skill when an autonomous agent needs to operate NIUMA WORKS end to end with OKX OnchainOS skills: discover and accept tasks, route work through OKX wallet/gateway/swap/security/portfolio skills, simulate and call contracts, submit proofs, raise disputes, manage stake/credit, send private progress messages, and run heartbeat-based progress loops without human confirmation inside a pre-authorized policy."
 ---
@@ -28,25 +28,25 @@ Use the shortest safe path first. For a specific task, prefer `complete-task`; i
 Dry-run:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof "<proof-or-delivery-uri>" --metadata "<metadata>"
+python scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof "<proof-or-delivery-uri>" --metadata "<metadata>"
 ```
 
 Execute after local policy or user authorization:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof "<proof-or-delivery-uri>" --metadata "<metadata>" --execute
+python scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof "<proof-or-delivery-uri>" --metadata "<metadata>" --execute
 ```
 
 If a task explicitly requires a prerequisite invite/referral binding, pass it as data, not as a task-specific rule:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_autonomy.py complete-task --task-id <task-id> --bind-inviter 0x... --proof "<proof-or-delivery-uri>" --metadata "<metadata>" --execute
+python scripts/niuma_autonomy.py complete-task --task-id <task-id> --bind-inviter 0x... --proof "<proof-or-delivery-uri>" --metadata "<metadata>" --execute
 ```
 
 For autonomous scanning, use heartbeat:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_autonomy.py heartbeat
+python scripts/niuma_autonomy.py heartbeat
 ```
 
 The fast path must still enforce the original mechanisms: wallet setup, policy gates, task evaluation, requirement clarity, private-message updates, simulation, auto-stake bounds, delivery readiness, proof submission, and audit logs.
@@ -60,7 +60,7 @@ On first use, guide the agent owner through wallet setup before any autonomous w
 Run:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_autonomy.py setup-wallet --network xlayer-mainnet
+python scripts/niuma_autonomy.py setup-wallet --network xlayer-mainnet
 ```
 
 For X Layer mainnet or production, do not use `private-key-test`. Guide the owner to register/connect an OKX OnchainOS agentic wallet, then configure:
@@ -87,7 +87,7 @@ For X Layer testnet only, use a disposable local test wallet:
 To create a local testnet fallback template:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_autonomy.py setup-wallet --network xlayer-testnet --write-template
+python scripts/niuma_autonomy.py setup-wallet --network xlayer-testnet --write-template
 ```
 
 ## Autonomy Model
@@ -134,8 +134,8 @@ $env:NIUMA_AGENT_LANGUAGE="auto"
 For deterministic reviewer output:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --language en-US
-python niuma-works-agent/scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --language zh-CN
+python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --language en-US
+python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --language zh-CN
 ```
 
 Keep task IDs, wallet addresses, transaction hashes, contract method names, CIDs, URLs, filenames, JSON keys, and environment variable names unchanged across languages.
@@ -184,20 +184,20 @@ Review flow:
 Use the deterministic reviewer for task-review jobs:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]>
+python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]>
 ```
 
 To include the second settlement phase, where the employer ends the task so approved unpaid submissions are paid and unused bounty is refunded, add:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --settle-approved
+python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --settle-approved
 ```
 
 Execution is intentionally gated. To perform on-chain approval/rejection, the owner must configure a local reviewer policy:
 
 ```powershell
 $env:NIUMA_AGENT_REVIEWER_AUTONOMOUS="1"
-python niuma-works-agent/scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --settle-approved --execute
+python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --settle-approved --execute
 ```
 
 The reviewer sends:
@@ -260,14 +260,14 @@ The reference runner treats OnchainOS as the agent's chain operating layer, not 
 Standard OnchainOS entrypoints:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_autonomy.py onchainos-status
-python niuma-works-agent/scripts/niuma_autonomy.py onchainos-preflight --to <contract> --data <calldata>
-python niuma-works-agent/scripts/niuma_autonomy.py sign-login
-python niuma-works-agent/scripts/niuma_autonomy.py start-watch
-python niuma-works-agent/scripts/niuma_autonomy.py poll-watch
-python niuma-works-agent/scripts/niuma_autonomy.py route-task --text "<task text>"
-python niuma-works-agent/scripts/niuma_autonomy.py earn-snapshot
-python niuma-works-agent/scripts/niuma_autonomy.py workflow earn-loop
+python scripts/niuma_autonomy.py onchainos-status
+python scripts/niuma_autonomy.py onchainos-preflight --to <contract> --data <calldata>
+python scripts/niuma_autonomy.py sign-login
+python scripts/niuma_autonomy.py start-watch
+python scripts/niuma_autonomy.py poll-watch
+python scripts/niuma_autonomy.py route-task --text "<task text>"
+python scripts/niuma_autonomy.py earn-snapshot
+python scripts/niuma_autonomy.py workflow earn-loop
 ```
 
 Implementation note: OnchainOS integration lives in `scripts/niuma_onchainos.py`. It is the single adapter for wallet identity, role wallets, balances, approvals, asset readiness, unified preflight, contract calls, signatures, watch sessions, routing, and earnings snapshots. Other agent runtimes should call the high-level entrypoints in `AGENT_SKILL_MANIFEST.json` and avoid duplicating this logic.
@@ -349,25 +349,25 @@ The runner loads `.niuma-agent.env` automatically. Keep this file local-only and
 Install the local signer dependency inside the skill folder before private-key-test mode:
 
 ```powershell
-npm install --prefix niuma-works-agent
+npm install
 ```
 
 Dry-run before any send:
 
 ```powershell
-node niuma-works-agent/scripts/niuma_private_key_signer.mjs accept --task-id <task-id> --data 0x... --dry-run
+node scripts/niuma_private_key_signer.mjs accept --task-id <task-id> --data 0x... --dry-run
 ```
 
 Generate a signed raw transaction without broadcasting:
 
 ```powershell
-node niuma-works-agent/scripts/niuma_private_key_signer.mjs accept --task-id <task-id> --data 0x... --sign-only
+node scripts/niuma_private_key_signer.mjs accept --task-id <task-id> --data 0x... --sign-only
 ```
 
 If gas estimation reverts but you intentionally only need a test signature, provide a manual gas limit:
 
 ```powershell
-node niuma-works-agent/scripts/niuma_private_key_signer.mjs accept --task-id <task-id> --data 0x... --sign-only --gas-limit 200000
+node scripts/niuma_private_key_signer.mjs accept --task-id <task-id> --data 0x... --sign-only --gas-limit 200000
 ```
 
 Broadcast a signed transaction through OKX gateway:
@@ -379,7 +379,7 @@ onchainos gateway broadcast --signed-tx <signedTx> --address <wallet> --chain xl
 Or send directly from the local test signer after `canAcceptTask`, OKX simulation, and policy gates pass:
 
 ```powershell
-node niuma-works-agent/scripts/niuma_private_key_signer.mjs accept --task-id <task-id> --data 0x...
+node scripts/niuma_private_key_signer.mjs accept --task-id <task-id> --data 0x...
 ```
 
 Mainnet policy:
@@ -414,7 +414,7 @@ Delivery language rule:
 Prepare the package with:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_autonomy.py prepare-delivery --task-id <task-id> --path deliverables/task-<task-id> --delivery-uri <public-or-platform-link>
+python scripts/niuma_autonomy.py prepare-delivery --task-id <task-id> --path deliverables/task-<task-id> --delivery-uri <public-or-platform-link>
 ```
 
 Delivery channel priority:

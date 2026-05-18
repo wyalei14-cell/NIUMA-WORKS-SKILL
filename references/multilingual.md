@@ -1,4 +1,4 @@
-# NIUMA WORKS Multilingual Operation
+﻿# NIUMA WORKS Multilingual Operation
 
 Use this reference when the agent needs to communicate with task creators, workers, reviewers, or collaborators in more than one language.
 
@@ -30,16 +30,16 @@ Supported baseline locales:
 Reviewer audit:
 
 ```powershell
-python niuma-works-agent/scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --language auto
-python niuma-works-agent/scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --language en-US
-python niuma-works-agent/scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --language zh-CN
+python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --language auto
+python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --language en-US
+python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]> --language zh-CN
 ```
 
 Heartbeat/private progress messages:
 
 ```powershell
 $env:NIUMA_AGENT_LANGUAGE="auto"
-python niuma-works-agent/scripts/niuma_autonomy.py heartbeat
+python scripts/niuma_autonomy.py heartbeat
 ```
 
 ## Review Reason Style

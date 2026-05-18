@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "niuma-works-agent",
   "version": "1.4.4",
   "description": "Universal NIUMA WORKS autonomous agent skill for X Layer mainnet with deep OKX OnchainOS wallet, security, gateway, messaging-auth, portfolio, and watch-loop integration.",
@@ -9,21 +9,21 @@
     "onchainosCli": "required for mainnet signing"
   },
   "entrypoints": {
-    "setupWallet": "python niuma-works-agent/scripts/niuma_autonomy.py setup-wallet --network xlayer-mainnet",
-    "onchainosStatus": "python niuma-works-agent/scripts/niuma_autonomy.py onchainos-status",
-    "onchainosPreflight": "python niuma-works-agent/scripts/niuma_autonomy.py onchainos-preflight --to <contract> --data <calldata>",
-    "signLogin": "python niuma-works-agent/scripts/niuma_autonomy.py sign-login",
-    "startWatch": "python niuma-works-agent/scripts/niuma_autonomy.py start-watch",
-    "pollWatch": "python niuma-works-agent/scripts/niuma_autonomy.py poll-watch",
-    "routeTask": "python niuma-works-agent/scripts/niuma_autonomy.py route-task --text <task text>",
-    "earnSnapshot": "python niuma-works-agent/scripts/niuma_autonomy.py earn-snapshot",
-    "workflow": "python niuma-works-agent/scripts/niuma_autonomy.py workflow <complete-task|review-submission|publish-task|settle-task|earn-loop>",
-    "evaluate": "python niuma-works-agent/scripts/niuma_autonomy.py evaluate",
-    "heartbeat": "python niuma-works-agent/scripts/niuma_autonomy.py heartbeat",
-    "completeTaskDryRun": "python niuma-works-agent/scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof <proof-or-uri> --metadata <metadata>",
-    "completeTaskExecute": "python niuma-works-agent/scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof <proof-or-uri> --metadata <metadata> --execute",
-    "prepareDelivery": "python niuma-works-agent/scripts/niuma_autonomy.py prepare-delivery --task-id <task-id> --path deliverables/task-<task-id> --delivery-uri <uri>",
-    "reviewAudit": "python niuma-works-agent/scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]>"
+    "setupWallet": "python scripts/niuma_autonomy.py setup-wallet --network xlayer-mainnet",
+    "onchainosStatus": "python scripts/niuma_autonomy.py onchainos-status",
+    "onchainosPreflight": "python scripts/niuma_autonomy.py onchainos-preflight --to <contract> --data <calldata>",
+    "signLogin": "python scripts/niuma_autonomy.py sign-login",
+    "startWatch": "python scripts/niuma_autonomy.py start-watch",
+    "pollWatch": "python scripts/niuma_autonomy.py poll-watch",
+    "routeTask": "python scripts/niuma_autonomy.py route-task --text <task text>",
+    "earnSnapshot": "python scripts/niuma_autonomy.py earn-snapshot",
+    "workflow": "python scripts/niuma_autonomy.py workflow <complete-task|review-submission|publish-task|settle-task|earn-loop>",
+    "evaluate": "python scripts/niuma_autonomy.py evaluate",
+    "heartbeat": "python scripts/niuma_autonomy.py heartbeat",
+    "completeTaskDryRun": "python scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof <proof-or-uri> --metadata <metadata>",
+    "completeTaskExecute": "python scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof <proof-or-uri> --metadata <metadata> --execute",
+    "prepareDelivery": "python scripts/niuma_autonomy.py prepare-delivery --task-id <task-id> --path deliverables/task-<task-id> --delivery-uri <uri>",
+    "reviewAudit": "python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]>"
   },
   "environment": {
     "NIUMA_AGENT_NETWORK": "xlayer-mainnet",

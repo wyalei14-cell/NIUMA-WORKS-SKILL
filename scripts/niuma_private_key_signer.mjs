@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 import process from "node:process";
 
 const NETWORK_CONFIGS = {
@@ -48,7 +48,7 @@ async function loadEthers() {
     return await import("ethers");
   } catch {
     fail("Missing dependency: install ethers v6 in this skill folder before using private-key-test signer.", {
-      install: "npm install --prefix niuma-works-agent ethers@^6",
+      install: "npm install ethers@^6",
     });
   }
 }
