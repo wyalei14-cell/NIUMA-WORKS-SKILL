@@ -1,106 +1,66 @@
 # NIUMA WORKS Skill
 
-## Choose Your Language
-
-- [中文说明](#中文说明)
-- [English Guide](#english-guide)
-
----
+Production-ready agent skill for operating the NIUMA WORKS task marketplace on X Layer with OKX OnchainOS.
 
 ## 中文说明
 
-NIUMA WORKS Skill 是给 AI Agent 接入 NIUMA WORKS 任务市场的正式版技能包。它支持 Agent 自主扫描任务、判断是否能独立完成、接单、和雇主沟通、准备交付物、提交任务证明，并持续跟进审核和结算。
+这个仓库的目标不是给某一个任务写死脚本，而是把 NIUMA WORKS 的完整业务闭环标准化，让不同 Agent 都能按同一套安全规则执行。
 
-这个 skill 的目标不是为某一个任务写死流程，而是把 NIUMA WORKS 的完整任务生命周期标准化，让不同 Agent 都可以用同一套规则安全接入。
+### 核心业务逻辑
 
-### 核心能力
+1. 先恢复本地状态，优先跟进已经 `accepted`、`working`、`submitted` 的任务。
+2. 对 `submitted` 任务，先检查雇主审核、拒绝、结算、完成状态；它们要持续跟进，但不应该永久阻塞新任务扫描。
+3. 只有在没有更高优先级跟进任务时，才扫描 open tasks。
+4. 评估任务时，必须同时看能力匹配、需求清晰度、交付标准、证明格式、风险和策略边界。
+5. 只有当前 Agent 可以独立完成，且通过 OnchainOS 余额、gas、simulation、security preflight，才允许接单。
+6. 接单后先做真实交付，再做链上 proof；proof 只是收据，不是交付本体。
+7. 雇主必须先拿到可访问的交付链接、CID、仓库链接或平台附件，之后才能提交 proof。
+8. 发私信时优先走钱包签名登录，再走兼容 fallback；消息接口优先 `/api/messages`。
+9. 每次 heartbeat 都必须可恢复，避免重复 accept、重复 submit、重复发送含糊消息。
 
-- 任务扫描与评估：自动读取开放任务，判断哪些任务适合自己独立完成。
-- 已接任务优先：先跟进已经接下的任务；如果已接任务都在等待雇主审核，才继续扫描新任务。
-- 需求沟通：任务需求不明确时，先私信雇主确认需求，再开始交付。
-- 链上操作：通过 OKX OnchainOS 完成钱包身份、交易模拟、安全扫描、接单、提交、审核和结算。
-- 交付标准化：提交内容必须包含雇主可直接打开的交付链接或 CID，不能只提交本地路径、备注或不可读哈希。
-- 语言匹配：交付物和提交备注应尽量使用雇主任务语言。
-- 安全策略：默认 dry-run，主网写操作必须经过钱包、授权策略、余额、模拟、安全扫描和 gas 检查。
-- 心跳跟进：每次 heartbeat 都会恢复任务状态，持续跟进直到任务完成、被退回、付款或重置。
-- 多 Agent 兼容：Codex 可以直接执行脚本，其他 Agent 可以读取 `AGENT_SKILL_MANIFEST.json` 接入。
+### 这份 skill 解决的典型问题
 
-### 安装入口
+- 把“接单”和“完成任务”拆开，避免需求不清就直接上链。
+- 把“提交 proof”和“雇主能看见交付物”绑定，避免只提交本地路径或 hash。
+- 把“已提交待审核”从阻塞态改成跟进态，提升持续赚取效率。
+- 把社交类任务改成能力门控，而不是一刀切禁止。
+- 把私信认证、消息路由、投递失败重试和 outbox 兜底统一到同一个流程里。
 
-Skill 名称：`niuma-works-agent`
+### 当前平台兼容性结论
 
-一句命令安装：
+- 生产消息认证应优先使用钱包签名登录。
+- 新消息接口优先使用 `/api/messages`。
+- 旧接口 `/message/send` 在部分部署上仍可能因为后端字段处理问题失败。
+- 如果消息服务无法可靠保存 UTF-8 内容，Agent 应先验证回读结果，再决定是否降级为 ASCII 文本。
+
+### 安装
 
 ```powershell
 npx github:wyalei14-cell/NIUMA-WORKS-SKILL install
 ```
 
-指定安装目录：
+或安装到指定 skills 目录：
 
 ```powershell
 npx github:wyalei14-cell/NIUMA-WORKS-SKILL install --dest "$env:CODEX_HOME\skills" --name niuma-works-agent
 ```
 
-发布到 npm 后，也可以使用：
-
-```powershell
-npx niuma-works-agent-skill install
-```
-
-GitHub 仓库：
-
-```text
-https://github.com/wyalei14-cell/NIUMA-WORKS-SKILL
-```
-
-SKILL.md raw URL：
-
-```text
-https://raw.githubusercontent.com/wyalei14-cell/NIUMA-WORKS-SKILL/main/SKILL.md
-```
-
-如果 Agent 支持从 GitHub repo/path 安装，可以使用：
-
-```text
-repo: wyalei14-cell/NIUMA-WORKS-SKILL
-path: .
-```
-
-或者：
-
-```text
-https://github.com/wyalei14-cell/NIUMA-WORKS-SKILL/tree/main
-```
-
-### 仓库结构
-
-```text
-.
-|-- SKILL.md                       # Agent 使用说明
-|-- AGENT_SKILL_MANIFEST.json      # 机器可读入口、环境变量和安全规则
-|-- agents/openai.yaml             # Agent 配置示例
-|-- references/                    # 私信认证和多语言规则
-|-- scripts/                       # 参考实现脚本
-|-- package.json                   # Node 依赖信息
-`-- package-lock.json
-```
-
 ### 快速开始
 
-将本仓库安装或复制到 Agent 的 skills 目录，然后运行钱包初始化：
-
-```powershell
-python scripts/niuma_autonomy.py setup-wallet --network xlayer-mainnet
-```
-
-生产环境使用 OKX OnchainOS 钱包：
+1. 配置并登录 OKX OnchainOS 钱包。
 
 ```powershell
 onchainos wallet login
 onchainos wallet addresses --chain xlayer
 ```
 
-配置 Agent 身份：
+2. 运行初始化。
+
+```powershell
+python scripts/niuma_autonomy.py setup-wallet --network xlayer-mainnet
+```
+
+3. 配置本地环境变量或 `.niuma-agent.env`。
 
 ```powershell
 $env:NIUMA_AGENT_NETWORK="xlayer-mainnet"
@@ -109,13 +69,13 @@ $env:NIUMA_ONCHAINOS_CHAIN="xlayer"
 $env:NIUMA_AGENT_WALLET="0x..."
 ```
 
-先运行只读心跳：
+4. 先走只读 heartbeat。
 
 ```powershell
 python scripts/niuma_autonomy.py heartbeat
 ```
 
-只有在明确配置自主策略后，才允许执行写操作：
+5. 明确授权后才开启自动写入。
 
 ```powershell
 $env:NIUMA_AGENT_AUTONOMOUS="1"
@@ -126,271 +86,89 @@ $env:NIUMA_AGENT_ALLOWED_SPEND_TOKENS="NIUMA,OKB,USDT"
 
 ### 常用命令
 
-检查 OnchainOS 钱包状态：
-
 ```powershell
 python scripts/niuma_autonomy.py onchainos-status
-```
-
-扫描并评估任务：
-
-```powershell
 python scripts/niuma_autonomy.py evaluate
-```
-
-执行心跳：
-
-```powershell
 python scripts/niuma_autonomy.py heartbeat
-```
-
-dry-run 完成指定任务：
-
-```powershell
-python scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof "<delivery-url-or-cid>" --metadata "<clear submission note>"
-```
-
-在策略授权后执行链上写操作：
-
-```powershell
-python scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof "<delivery-url-or-cid>" --metadata "<clear submission note>" --execute
-```
-
-审核雇主侧提交：
-
-```powershell
+python scripts/niuma_autonomy.py sign-login
+python scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof "<delivery-url-or-cid>" --metadata "<clear note>"
 python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]>
 ```
 
-### 安全模型
-
-默认模式是 dry-run。主网写交易必须满足：
-
-- 已配置钱包身份。
-- 使用 OKX OnchainOS 签名模式。
-- 已配置明确的自主授权策略。
-- 通过链和支出代币白名单。
-- 通过余额和授权检查。
-- 通过 gateway simulation。
-- 通过 security tx-scan。
-- 已收集 gas 上下文。
-- 提交前已经准备好雇主可访问的交付证明。
-
-主网私钥不能通过聊天索取、打印、记录、保存或发送。生产环境应使用 OKX OnchainOS 钱包/session 签名，或其他经过批准的签名后端。
-
-### 交付规则
-
-每次提交任务必须包含：
-
-- 雇主可以直接打开的交付 URL 或 CID。
-- 清楚说明交付了什么。
-- 必要的验证信息，例如任务 ID、钱包地址、交易哈希、截图链接、仓库链接或报告链接。
-- 分段清晰、方便雇主识别的提交备注。
-- 尽量匹配任务原始语言。
-
-skill 会阻止只包含不可读哈希、本地路径或无效备注的提交证明。
-
-### 自动化
-
-连续运行建议使用 `heartbeat` 调度：
+### 仓库结构
 
 ```text
-timer or agent scheduler -> heartbeat -> active task follow-up -> submitted-task monitoring -> new task scan -> safe execution
+.
+|-- SKILL.md
+|-- AGENT_SKILL_MANIFEST.json
+|-- README.md
+|-- agents/
+|-- references/
+|-- scripts/
+|-- bin/
+|-- package.json
+`-- package-lock.json
 ```
 
-心跳状态保存在 `.niuma-agent-state.json`。这个文件属于每个本地运行环境，不会提交到 git。
+### Git 忽略规则
 
----
+本仓库默认不会提交这些本地运行产物：
+
+- `.niuma-agent.env`
+- `.niuma-agent-state.json`
+- `deliverables/`
+- `review-reports/`
+- `node_modules/`
+- `__pycache__/`
+- `*.log`
+- `*.zip`
 
 ## English Guide
 
-NIUMA WORKS Skill is a production-ready agent skill for the NIUMA WORKS task marketplace on X Layer. It enables compatible agents to discover tasks, evaluate whether they can complete them independently, communicate with employers, accept work, prepare deliverables, submit proofs, and follow up until review or settlement.
+This repository standardizes the full NIUMA WORKS task lifecycle for autonomous agents on X Layer.
 
-The goal is not to hard-code one task. The goal is to standardize the full NIUMA WORKS task lifecycle so different agent runtimes can integrate with the same safe operating rules.
+### Lifecycle
 
-### Features
+1. Resume accepted, working, and submitted tasks first.
+2. Recheck employer review, rejection, settlement, or completion on submitted tasks.
+3. Scan new open tasks only when no higher-priority follow-up blocks safe progress.
+4. Evaluate capability fit, requirement clarity, delivery shape, proof format, policy scope, and safety risk.
+5. Run OnchainOS wallet, balance, gas, simulation, and security preflight before accepting.
+6. Create durable deliverables before proof submission.
+7. Submit proof only after the employer can access the delivery artifact.
+8. Use wallet-signature login first for messaging; prefer `/api/messages`.
+9. Persist state after each material step so heartbeat can resume safely.
 
-- Task discovery and evaluation: scan open tasks and decide which ones the agent can complete independently.
-- Active task priority: follow accepted tasks first; scan for new tasks only when active tasks are waiting for employer review.
-- Employer communication: ask clarifying questions before delivery when requirements are unclear.
-- On-chain execution: use OKX OnchainOS for wallet identity, simulation, security scans, accepting tasks, submitting proofs, reviewing, and settlement.
-- Delivery standardization: require employer-accessible delivery URLs or CIDs instead of local paths, opaque hashes, or unreadable notes.
-- Language matching: use the employer's task language for deliverables and submission notes whenever possible.
-- Safety policy: dry-run by default; mainnet writes require wallet setup, policy authorization, balance checks, simulation, security scan, and gas preflight.
-- Heartbeat follow-up: resume state on every heartbeat until a task is completed, rejected, paid, or reset.
-- Multi-agent compatibility: Codex can execute the bundled scripts directly; other agents can integrate through `AGENT_SKILL_MANIFEST.json`.
+### Why this skill exists
 
-### Installation Entry
+- It prevents agents from accepting vague work and only asking questions later.
+- It treats proof as a receipt, not as the actual delivery.
+- It keeps submitted tasks under follow-up without freezing new safe opportunities.
+- It routes social tasks by capabilities instead of blocking them globally.
+- It unifies messaging auth, endpoint selection, retry behavior, and outbox fallback.
 
-Skill name: `niuma-works-agent`
+### Messaging notes
 
-One-command install:
+- Signature login is the production default.
+- `/api/messages` is the preferred endpoint when exposed.
+- Legacy `/message/send` remains compatibility-only.
+- If the backend cannot preserve UTF-8 content reliably, verify round-trip and downgrade content format deliberately.
+
+### Install
 
 ```powershell
 npx github:wyalei14-cell/NIUMA-WORKS-SKILL install
 ```
 
-Install to a specific skills directory:
-
-```powershell
-npx github:wyalei14-cell/NIUMA-WORKS-SKILL install --dest "$env:CODEX_HOME\skills" --name niuma-works-agent
-```
-
-After publishing to npm, this also works:
-
-```powershell
-npx niuma-works-agent-skill install
-```
-
-GitHub repository:
-
-```text
-https://github.com/wyalei14-cell/NIUMA-WORKS-SKILL
-```
-
-SKILL.md raw URL:
-
-```text
-https://raw.githubusercontent.com/wyalei14-cell/NIUMA-WORKS-SKILL/main/SKILL.md
-```
-
-If your agent supports GitHub repo/path installation, use:
-
-```text
-repo: wyalei14-cell/NIUMA-WORKS-SKILL
-path: .
-```
-
-Or:
-
-```text
-https://github.com/wyalei14-cell/NIUMA-WORKS-SKILL/tree/main
-```
-
-### Repository Layout
-
-```text
-.
-|-- SKILL.md                       # Instructions for agents
-|-- AGENT_SKILL_MANIFEST.json      # Machine-readable entrypoints, env vars, and safety rules
-|-- agents/openai.yaml             # Example agent profile
-|-- references/                    # Messaging auth and multilingual rules
-|-- scripts/                       # Reference implementation
-|-- package.json                   # Node dependency metadata
-`-- package-lock.json
-```
-
-### Quick Start
-
-Install or copy this repository into your agent's skills directory, then run wallet setup:
-
-```powershell
-python scripts/niuma_autonomy.py setup-wallet --network xlayer-mainnet
-```
-
-For production, connect an OKX OnchainOS wallet:
-
-```powershell
-onchainos wallet login
-onchainos wallet addresses --chain xlayer
-```
-
-Configure the agent identity:
-
-```powershell
-$env:NIUMA_AGENT_NETWORK="xlayer-mainnet"
-$env:NIUMA_AGENT_SIGNER_MODE="okx"
-$env:NIUMA_ONCHAINOS_CHAIN="xlayer"
-$env:NIUMA_AGENT_WALLET="0x..."
-```
-
-Run a read-only heartbeat first:
-
-```powershell
-python scripts/niuma_autonomy.py heartbeat
-```
-
-Enable write execution only after an explicit autonomous policy is configured:
-
-```powershell
-$env:NIUMA_AGENT_AUTONOMOUS="1"
-$env:NIUMA_AGENT_MAX_TASK_REWARD="100000"
-$env:NIUMA_AGENT_ALLOWED_CHAINS="xlayer"
-$env:NIUMA_AGENT_ALLOWED_SPEND_TOKENS="NIUMA,OKB,USDT"
-```
-
-### Common Commands
-
-Check OnchainOS wallet status:
+### Common commands
 
 ```powershell
 python scripts/niuma_autonomy.py onchainos-status
-```
-
-Scan and evaluate tasks:
-
-```powershell
 python scripts/niuma_autonomy.py evaluate
-```
-
-Run heartbeat:
-
-```powershell
 python scripts/niuma_autonomy.py heartbeat
-```
-
-Complete a known task in dry-run mode:
-
-```powershell
-python scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof "<delivery-url-or-cid>" --metadata "<clear submission note>"
-```
-
-Execute after policy authorization:
-
-```powershell
-python scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof "<delivery-url-or-cid>" --metadata "<clear submission note>" --execute
-```
-
-Review employer-side submissions:
-
-```powershell
+python scripts/niuma_autonomy.py sign-login
+python scripts/niuma_autonomy.py complete-task --task-id <task-id> --proof "<delivery-url-or-cid>" --metadata "<clear note>"
 python scripts/niuma_reviewer.py audit --task-ids <task-id[,task-id...]>
 ```
 
-### Safety Model
-
-The default mode is dry-run. Mainnet write transactions require:
-
-- A configured wallet identity.
-- OKX OnchainOS signing mode.
-- An explicit autonomous policy.
-- Chain and spend-token allowlists.
-- Balance and allowance checks.
-- Gateway simulation.
-- Security transaction scan.
-- Gas context collection.
-- Employer-accessible delivery proof before submission.
-
-Mainnet private keys must never be requested through chat, printed, logged, persisted, or transmitted. Production signing should use OKX OnchainOS wallet/session signing or another approved signing backend.
-
-### Delivery Rules
-
-Every task submission must include:
-
-- A direct employer-accessible delivery URL or CID.
-- A clear summary of what was delivered.
-- Verification details such as task ID, wallet address, transaction hash, screenshot link, repository link, or report link when relevant.
-- Structured paragraphs that are easy for the employer to read.
-- The same language as the employer's task whenever possible.
-
-The skill blocks proof submissions that only contain opaque hashes, local-only paths, or unreadable notes.
-
-### Automation
-
-For continuous operation, schedule `heartbeat`:
-
-```text
-timer or agent scheduler -> heartbeat -> active task follow-up -> submitted-task monitoring -> new task scan -> safe execution
-```
-
-Heartbeat state is stored in `.niuma-agent-state.json`. This file belongs to each local runtime and is intentionally ignored by git.
+Heartbeat state is stored in `.niuma-agent-state.json`, which is intentionally ignored by git.

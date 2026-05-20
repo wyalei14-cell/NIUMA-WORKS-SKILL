@@ -52,6 +52,9 @@ load_env_file()
 
 DEFAULT_NETWORK = os.environ.get("NIUMA_AGENT_NETWORK", "xlayer-mainnet").strip().lower()
 DEFAULT_LANGUAGE = os.environ.get("NIUMA_AGENT_LANGUAGE", os.environ.get("NIUMA_AGENT_LOCALE", "auto")).strip()
+ONCHAINOS_SECURITY_SCAN = os.environ.get("NIUMA_ONCHAINOS_SECURITY_SCAN", "1") != "0"
+ONCHAINOS_GAS_PREFLIGHT = os.environ.get("NIUMA_ONCHAINOS_GAS_PREFLIGHT", "1") != "0"
+ONCHAINOS_BALANCE_PREFLIGHT = os.environ.get("NIUMA_ONCHAINOS_BALANCE_PREFLIGHT", "1") != "0"
 def language_for(text=""):
     requested = (DEFAULT_LANGUAGE or "auto").lower()
     if requested in {"zh", "zh-cn", "cn", "chinese", "中文"}:
@@ -74,6 +77,16 @@ DEFAULT_CAPABILITIES = {
     "docs",
     "translation",
     "testing",
+}
+
+SOCIAL_CAPABILITIES = {
+    "social",
+    "twitter",
+    "x",
+    "telegram",
+    "screenshot",
+    "browser",
+    "community",
 }
 
 INDEPENDENT_KEYWORDS = {
@@ -652,15 +665,7 @@ def send_progress(state, wallet, peer, task_id, content):
     if not token:
         return outbox(state, peer, task_id, content)
     try:
-        data = niuma_api.request_json("POST", "/message/send", body={
-            "to_address": peer,
-            "content": content,
-            "task_id": int(task_id),
-            "type": "text",
-            "sender": wallet,
-            "from_address": wallet,
-            "wallet": wallet,
-        }, token=token)
+        data = niuma_api.message_send(wallet, peer, int(task_id), content, token=token)
         return {"sent": True, "data": data}
     except Exception as exc:
         return outbox(state, peer, task_id, content, reason=f"message send failed: {exc}")
@@ -668,7 +673,7 @@ def send_progress(state, wallet, peer, task_id, content):
 
 def ensure_api_token(wallet):
     try:
-        nonce_data = niuma_api.request_json("GET", "/auth/nonce", params={"address": wallet})
+        nonce_data = niuma_api.request_json("GET", niuma_api.NONCE_PATH, params={"address": wallet})
         nonce = nonce_data.get("nonce") if isinstance(nonce_data, dict) else nonce_data
         message = f"Sign this message to authenticate: {nonce}"
         if signing_mode() == "okx":
@@ -686,14 +691,23 @@ def ensure_api_token(wallet):
         else:
             return None
         if not signature:
+            token = niuma_api.login_with_password()
+            if token:
+                return token
             return None
-        login = niuma_api.request_json("POST", "/auth/login", body={"address": wallet, "signature": signature})
-        token = login.get("token") if isinstance(login, dict) else None
+        token = niuma_api.login_with_signature(wallet, signature)
         if token:
             os.environ["NIUMA_API_TOKEN"] = token
-        return token
-    except Exception:
+            return token
+        token = niuma_api.login_with_password()
+        if token:
+            return token
         return None
+    except Exception:
+        try:
+            return niuma_api.login_with_password()
+        except Exception:
+            return None
 
 
 def progress_text(task_id, title, status, next_action, proof_or_tx=""):
@@ -746,6 +760,39 @@ def collaboration_plan(task, evaluation):
 
 def parse_json_output(result):
     return ox.parse_json(result)
+
+
+def critical_risk_found(result):
+    return ox.critical_risk(result)
+
+
+def chain_policy_ok():
+    current = ox.policy()
+    return {"ok": current["ok"], "chain": current["chain"], "allowedChains": current["allowedChains"], "reason": "" if current["ok"] else f"chain not allowed by policy: {current['chain']}"}
+
+
+def onchainos_balance_snapshot(wallet, force=False):
+    if not wallet or not ONCHAINOS_BALANCE_PREFLIGHT:
+        return {"skipped": True, "reason": "wallet missing or balance preflight disabled"}
+    return ox.balance(wallet, force=force)
+
+
+def onchainos_approval_snapshot(wallet):
+    if not wallet or not ONCHAINOS_SECURITY_SCAN:
+        return {"skipped": True, "reason": "wallet missing or security scan disabled"}
+    return ox.approvals(wallet)
+
+
+def onchainos_security_tx_scan(wallet, to, data):
+    if not ONCHAINOS_SECURITY_SCAN:
+        return {"skipped": True, "reason": "NIUMA_ONCHAINOS_SECURITY_SCAN=0"}
+    return ox.tx_scan(wallet, to, data)
+
+
+def onchainos_gas_context(wallet, to, data):
+    if not ONCHAINOS_GAS_PREFLIGHT:
+        return {"skipped": True, "reason": "NIUMA_ONCHAINOS_GAS_PREFLIGHT=0"}
+    return ox.gas_context(wallet, to, data)
 
 
 def onchainos_preflight(wallet, to, data, purpose="contract-call"):

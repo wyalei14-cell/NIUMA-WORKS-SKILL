@@ -4,8 +4,14 @@ deliverables/
 review-reports/
 node_modules/
 __pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 *.py[cod]
 *.log
 *.zip
+.coverage
+htmlcov/
+tmp/
 .env
 .DS_Store

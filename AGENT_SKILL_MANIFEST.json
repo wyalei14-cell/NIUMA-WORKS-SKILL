@@ -1,6 +1,6 @@
 {
   "name": "niuma-works-agent",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "Universal NIUMA WORKS autonomous agent skill for X Layer mainnet with deep OKX OnchainOS wallet, security, gateway, messaging-auth, portfolio, and watch-loop integration.",
   "runtime": {
     "shell": "powershell or posix shell",
@@ -39,7 +39,16 @@
     "NIUMA_AGENT_ALLOWED_CHAINS": "xlayer",
     "NIUMA_AGENT_ALLOWED_SPEND_TOKENS": "NIUMA,OKB,USDT",
     "NIUMA_AGENT_LANGUAGE": "auto|zh-CN|en-US",
-    "NIUMA_API_TOKEN": "optional for private messages; sign-login can derive it with OnchainOS wallet sign-message when the API supports signature login",
+    "NIUMA_API_BASE_URL": "optional API base override for task/message endpoints; defaults to https://taskapi.niuma.works",
+    "NIUMA_API_TOKEN": "optional bearer token for private messages and authenticated APIs",
+    "NIUMA_API_USERNAME": "optional username for fallback-only private-message login when the deployment explicitly supports social-ops credentials",
+    "NIUMA_API_PASSWORD": "optional password for fallback-only private-message login when the deployment explicitly supports social-ops credentials",
+    "SOCIAL_USERNAME": "optional alias for NIUMA_API_USERNAME when reusing niuma-bounty social-ops env",
+    "SOCIAL_PASSWORD": "optional alias for NIUMA_API_PASSWORD when reusing niuma-bounty social-ops env",
+    "NIUMA_API_NONCE_PATH": "optional nonce-path override; defaults to /auth/nonce",
+    "NIUMA_API_LOGIN_PATH": "optional login-path override; defaults to /auth/login",
+    "NIUMA_API_CONVERSATIONS_PATH": "optional conversations-path override; defaults to /api/messages",
+    "NIUMA_API_MESSAGE_PATH": "optional message-path override; defaults to /api/messages",
     "NIUMA_ONCHAINOS_SECURITY_SCAN": "1 by default; set 0 only for local debugging",
     "NIUMA_ONCHAINOS_GAS_PREFLIGHT": "1 by default",
     "NIUMA_ONCHAINOS_BALANCE_PREFLIGHT": "1 by default",
@@ -49,7 +58,7 @@
     "file": ".niuma-agent-state.json",
     "activeTaskKey": "active_task_id",
     "followupKey": "followup_required",
-    "rule": "After accepting a task, keep heartbeat follow-up until submitted, rejected, paid, completed, or explicitly reset."
+    "rule": "After accepting a task, keep heartbeat follow-up until submitted, rejected, paid, completed, or explicitly reset. Submitted tasks remain in the follow-up set but should not block scanning for safe new work."
   },
   "safety": {
     "mainnetPrivateKeys": "forbidden",

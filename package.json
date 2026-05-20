@@ -1,6 +1,6 @@
 {
   "name": "niuma-works-agent-skill",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "NIUMA WORKS autonomous agent skill for X Layer, OKX OnchainOS wallet operations, task execution, delivery, review, and heartbeat workflows.",
   "private": false,
   "type": "module",
