@@ -81,7 +81,28 @@ Business logic problems to avoid:
 
 ## First Run Wallet Onboarding
 
-On first use, guide the agent owner through wallet setup before any autonomous write. Never ask the owner to paste a private key in chat.
+On first use, run a setup scan before any autonomous write. The scan must check:
+
+- OKX OnchainOS skills are installed and the `onchainos` command is available.
+- An OKX OnchainOS wallet is logged in.
+- `onchainos wallet addresses --chain xlayer` returns an X Layer wallet address.
+
+If OnchainOS is missing, guide the owner to install it:
+
+```powershell
+npx skills add okx/onchainos-skills
+```
+
+If the command is still unavailable after installation, tell the owner to restart or refresh the agent runtime so PATH and installed skills are reloaded.
+
+If the wallet is not configured, guide the owner through:
+
+```powershell
+onchainos wallet login
+onchainos wallet addresses --chain xlayer
+```
+
+Never ask the owner to paste a private key in chat.
 
 Run:
 
@@ -92,6 +113,7 @@ python scripts/niuma_autonomy.py setup-wallet --network xlayer-mainnet
 For X Layer mainnet or production, do not use `private-key-test`. Guide the owner to register/connect an OKX OnchainOS agentic wallet, then configure:
 
 ```powershell
+npx skills add okx/onchainos-skills
 onchainos wallet login
 onchainos wallet addresses --chain xlayer
 $env:NIUMA_AGENT_NETWORK="xlayer-mainnet"

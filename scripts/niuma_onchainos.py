@@ -9,29 +9,66 @@ watch sessions, task routing, and earnings snapshots.
 import json
 import os
 import re
+import shutil
 import subprocess
 import time
 
 
 DEFAULT_NETWORK = os.environ.get("NIUMA_AGENT_NETWORK", "xlayer-mainnet").strip().lower()
 NIUMA_TOKEN = os.environ.get("NIUMA_TOKEN_ADDRESS", "0x87669801A1FaD6DAD9dB70d27Ac752f452989667")
+ONCHAINOS_INSTALL_COMMAND = "npx skills add okx/onchainos-skills"
 
 
 def run(cmd, timeout=90, cwd=None):
-    completed = subprocess.run(
-        cmd,
-        cwd=cwd,
-        text=True,
-        capture_output=True,
-        timeout=timeout,
-        encoding="utf-8",
-        errors="replace",
-    )
+    try:
+        completed = subprocess.run(
+            cmd,
+            cwd=cwd,
+            text=True,
+            capture_output=True,
+            timeout=timeout,
+            encoding="utf-8",
+            errors="replace",
+        )
+        return {
+            "cmd": " ".join(str(part) for part in cmd),
+            "returncode": completed.returncode,
+            "stdout": completed.stdout,
+            "stderr": completed.stderr,
+        }
+    except FileNotFoundError as exc:
+        return {
+            "cmd": " ".join(str(part) for part in cmd),
+            "returncode": 127,
+            "stdout": "",
+            "stderr": str(exc),
+            "missingExecutable": str(cmd[0]) if cmd else "",
+        }
+
+
+def cli_status():
+    path = shutil.which("onchainos")
+    if not path:
+        return {
+            "ok": False,
+            "installed": False,
+            "installCommand": ONCHAINOS_INSTALL_COMMAND,
+            "message": "OKX OnchainOS skills are not installed or onchainos is not available on PATH.",
+        }
+    status = run(["onchainos", "wallet", "status"], timeout=30)
+    payload = parse_json(status) or {}
+    data = payload.get("data") if isinstance(payload, dict) else {}
     return {
-        "cmd": " ".join(str(part) for part in cmd),
-        "returncode": completed.returncode,
-        "stdout": completed.stdout,
-        "stderr": completed.stderr,
+        "ok": status.get("returncode") == 0,
+        "installed": True,
+        "path": path,
+        "loggedIn": bool(data.get("loggedIn")),
+        "accountId": data.get("currentAccountId"),
+        "accountName": data.get("currentAccountName"),
+        "loginType": data.get("loginType"),
+        "email": data.get("email"),
+        "installCommand": ONCHAINOS_INSTALL_COMMAND,
+        "raw": status,
     }
 
 

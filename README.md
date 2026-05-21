@@ -39,6 +39,14 @@ Production-ready agent skill for operating the NIUMA WORKS task marketplace on X
 npx github:wyalei14-cell/NIUMA-WORKS-SKILL install
 ```
 
+First-run OnchainOS setup check:
+
+```powershell
+npx skills add okx/onchainos-skills
+onchainos wallet login
+onchainos wallet addresses --chain xlayer
+```
+
 或安装到指定 skills 目录：
 
 ```powershell

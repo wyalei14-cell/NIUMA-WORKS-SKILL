@@ -165,7 +165,9 @@ def okx_wallet_address(network=None):
 def wallet_setup_status(wallet=None, network=None):
     network = normalize_network(network)
     mode = signing_mode(network)
-    has_wallet = bool(wallet or os.environ.get("NIUMA_AGENT_WALLET"))
+    onchainos = ox.cli_status()
+    detected_wallet = wallet or os.environ.get("NIUMA_AGENT_WALLET") or (ox.wallet_address(network) if onchainos.get("installed") else None)
+    has_wallet = bool(detected_wallet)
     has_private_key = bool(os.environ.get("NIUMA_AGENT_PRIVATE_KEY"))
     messages = []
     ok = True
@@ -181,6 +183,12 @@ def wallet_setup_status(wallet=None, network=None):
             ok = False
             messages.append("Testnet private-key-test mode requires NIUMA_AGENT_PRIVATE_KEY in local .niuma-agent.env or process env.")
     elif mode == "okx":
+        if not onchainos.get("installed"):
+            ok = False
+            messages.append(f"OKX OnchainOS is required. Install it with: {ox.ONCHAINOS_INSTALL_COMMAND}")
+        elif not onchainos.get("loggedIn"):
+            ok = False
+            messages.append("OKX OnchainOS wallet is not logged in. Run: onchainos wallet login")
         if not has_wallet:
             ok = False
             messages.append("OKX mode requires NIUMA_AGENT_WALLET or an OKX OnchainOS wallet session that can provide the agent wallet address.")
@@ -197,6 +205,8 @@ def wallet_setup_status(wallet=None, network=None):
         "ok": ok,
         "network": network,
         "signerMode": mode,
+        "onchainos": onchainos,
+        "wallet": detected_wallet,
         "hasWallet": has_wallet,
         "hasPrivateKey": has_private_key,
         "envFile": str(ENV_FILE),
@@ -211,6 +221,10 @@ def wallet_setup_instructions(network=None):
             "mode": "okx",
             "title": "Configure OKX OnchainOS agentic wallet",
             "steps": [
+                f"Install OKX OnchainOS skills if missing: {ox.ONCHAINOS_INSTALL_COMMAND}",
+                "Restart or refresh the agent runtime if the new onchainos command is not detected.",
+                "Run onchainos wallet login and finish the wallet login flow.",
+                "Run onchainos wallet addresses --chain xlayer to confirm the agent wallet address.",
                 "Register or connect an OKX OnchainOS agentic wallet for the agent owner.",
                 "Authorize the agent wallet/session for XLayer mainnet contract calls inside the owner's policy limits.",
                 "Set NIUMA_AGENT_SIGNER_MODE=okx and NIUMA_AGENT_WALLET=<agent wallet address>.",
@@ -809,14 +823,27 @@ def contract_call_with_private_key(to, data, task_id, action="accept"):
 
 
 def onchainos_status(wallet=None, refresh_balance=False):
+    cli = ox.cli_status()
+    if not cli.get("installed"):
+        return {
+            "ok": False,
+            "status": "setup_required",
+            "network": DEFAULT_NETWORK,
+            "chain": ox.chain(),
+            "onchainos": cli,
+            "instructions": wallet_setup_instructions(DEFAULT_NETWORK),
+            "message": f"Install OKX OnchainOS first: {ox.ONCHAINOS_INSTALL_COMMAND}",
+        }
     state = load_state()
     identity = ox.bind_identity(state, wallet)
     save_state(state)
     detected = identity.get("wallet")
     return {
+        "ok": bool(detected) and bool(cli.get("loggedIn")),
         "network": DEFAULT_NETWORK,
         "chain": ox.chain(),
         "signerMode": signing_mode(),
+        "onchainos": cli,
         "wallet": detected,
         "identity": identity,
         "account": ox.account_info(),
@@ -843,6 +870,9 @@ def poll_onchainos_watch():
 
 
 def workflow(name, wallet=None, task_id=None, proof="", metadata=""):
+    setup = wallet_setup_status(wallet)
+    if signing_mode() == "okx" and not setup.get("ok"):
+        return {"workflow": name, "ok": False, "status": "setup_required", "setup": setup, "instructions": wallet_setup_instructions(setup["network"])}
     wallet = wallet or okx_wallet_address()
     if name == "earn-loop":
         state = load_state()

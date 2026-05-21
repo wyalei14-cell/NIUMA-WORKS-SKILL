@@ -1,14 +1,15 @@
 {
   "name": "niuma-works-agent",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "Universal NIUMA WORKS autonomous agent skill for X Layer mainnet with deep OKX OnchainOS wallet, security, gateway, messaging-auth, portfolio, and watch-loop integration.",
   "runtime": {
     "shell": "powershell or posix shell",
     "python": ">=3.9",
     "node": ">=18",
-    "onchainosCli": "required for mainnet signing"
+    "onchainosCli": "required for mainnet signing; install with: npx skills add okx/onchainos-skills"
   },
   "entrypoints": {
+    "firstRunPreflight": "python scripts/niuma_autonomy.py setup-wallet --network xlayer-mainnet",
     "setupWallet": "python scripts/niuma_autonomy.py setup-wallet --network xlayer-mainnet",
     "onchainosStatus": "python scripts/niuma_autonomy.py onchainos-status",
     "onchainosPreflight": "python scripts/niuma_autonomy.py onchainos-preflight --to <contract> --data <calldata>",
